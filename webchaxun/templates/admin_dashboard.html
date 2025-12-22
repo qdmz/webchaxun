@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>管理后台</h3>
+<div class="mb-3">
+  <a class="btn btn-primary" href="{{ url_for('admin_upload') }}">上传新 Excel</a>
+  <a class="btn btn-secondary" href="{{ url_for('admin_users') }}">用户管理</a>
+  <form method="post" action="{{ url_for('admin_delete', file_id=0) }}" id="delForm" style="display:none"></form>
+</div>
+<h5>文件列表</h5>
+<table class="table">
+  <thead><tr><th>原名</th><th>上传者</th><th>时间</th><th>权限</th><th>操作</th></tr></thead>
+  <tbody>
+  {% for f in files %}
+    <tr>
+      <td>{{ f.original_name }}</td>
+      <td>{{ f.uploaded_by }}</td>
+      <td>{{ f.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>Dept: {{ f.allowed_departments }}<br>Users: {{ f.allowed_users }}</td>
+      <td>
+        <a class="btn btn-sm btn-primary" href="{{ url_for('download', file_id=f.id) }}">下载</a>
+        <form method="post" action="{{ url_for('admin_delete', file_id=f.id) }}" style="display:inline">
+          <button class="btn btn-sm btn-danger">删除</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5">暂无文件</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h5>用户列表</h5>
+<table class="table">
+  <thead><tr><th>用户名</th><th>部门</th><th>管理员</th><th>激活</th></tr></thead>
+  <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.username }}</td>
+        <td>{{ u.department }}</td>
+        <td>{{ '是' if u.is_admin else '否' }}</td>
+        <td>{{ '激活' if u.active else '禁用' }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

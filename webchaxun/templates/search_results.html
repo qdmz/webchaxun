@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>关键词查询</h3>
+<form method="post" class="mb-3">
+  <div class="input-group">
+    <input class="form-control" name="keyword" placeholder="输入关键词" value="{{ keyword }}">
+    <button class="btn btn-outline-secondary">查询</button>
+  </div>
+</form>
+
+{% if results %}
+  <h5>查询结果（显示最多每表 200 行）</h5>
+  {% for r in results %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6>{{ r.file.original_name }} — 表: {{ r.sheet }}</h6>
+        <div>{{ r.rows | safe }}</div>
+      </div>
+    </div>
+  {% endfor %}
+{% elif keyword %}
+  <p>未找到匹配项。</p>
+{% endif %}
+{% endblock %}

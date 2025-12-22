@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>用户管理</h3>
+<div class="mb-3">
+  <form method="post" class="row g-2">
+    <input type="hidden" name="action" value="create">
+    <div class="col-md-3"><input class="form-control" name="username" placeholder="用户名" required></div>
+    <div class="col-md-3"><input class="form-control" name="password" placeholder="密码" required></div>
+    <div class="col-md-2"><input class="form-control" name="department" placeholder="部门"></div>
+    <div class="col-md-1 form-check"><input class="form-check-input" type="checkbox" name="is_admin" id="is_admin"><label class="form-check-label" for="is_admin">管理员</label></div>
+    <div class="col-md-2"><button class="btn btn-primary">创建用户</button></div>
+  </form>
+  <form method="post" style="margin-top:10px">
+    <input type="hidden" name="action" value="toggle_registration">
+    <button class="btn btn-secondary">切换注册开关（当前：{{ '开' if registration_open else '关' }})</button>
+  </form>
+
+  <hr>
+  <h5>批量导入用户</h5>
+  <form method="post" action="{{ url_for('admin_import_users') }}" enctype="multipart/form-data" class="row g-2">
+    <div class="col-md-6"><input type="file" name="users_file" class="form-control" required></div>
+    <div class="col-md-2"><button class="btn btn-outline-primary">导入（CSV或Excel，列: username,password,department,is_admin,active）</button></div>
+  </form>
+</div>
+
+<table class="table">
+  <thead><tr><th>用户名</th><th>部门</th><th>管理员</th><th>状态</th></tr></thead>
+  <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.username }}</td>
+        <td>{{ u.department }}</td>
+        <td>{{ '是' if u.is_admin else '否' }}</td>
+        <td>{{ '激活' if u.active else '禁用' }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin_user_toggle', user_id=u.id) }}" style="display:inline">
+            <button class="btn btn-sm btn-warning">切换激活</button>
+          </form>
+          {% if u.username != 'admin' %}
+          <form method="post" action="{{ url_for('admin_user_delete', user_id=u.id) }}" style="display:inline" onsubmit="return confirm('确认删除用户 {{ u.username }} ?')">
+            <button class="btn btn-sm btn-danger">删除</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <h3>注册</h3>
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">用户名</label>
+        <input class="form-control" name="username" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">密码</label>
+        <input type="password" class="form-control" name="password" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">部门（可选）</label>
+        <input class="form-control" name="department">
+      </div>
+      <button class="btn btn-primary">注册</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
