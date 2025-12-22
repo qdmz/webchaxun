@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    image: qdmz/webchaxun:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=changeme
+    volumes:
+      - ./webchaxun/uploads:/app/webchaxun/uploads
+    restart: unless-stopped
