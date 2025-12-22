@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}{{ file.original_filename }} - 数据查询{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2><i class="fas fa-search"></i> 数据查询</h2>
+                <p class="text-muted">文件: {{ file.original_filename }}</p>
+            </div>
+            <a href="{{ url_for('main.files') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> 返回文件列表
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-filter"></i> 搜索条件</h5>
+            </div>
+            <div class="card-body">
+                <form id="searchForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="searchKeyword" class="form-label">关键词</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                    <input type="text" class="form-control" id="searchKeyword" 
+                                           placeholder="输入搜索关键词..." autofocus>
+                                </div>
+                                <small class="form-text text-muted">支持模糊搜索，搜索所有列中的内容</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="sheetName" class="form-label">工作表</label>
+                                <select class="form-select" id="sheetName">
+                                    <option value="">所有工作表</option>
+                                    {% for sheet in file_info.sheets %}
+                                        <option value="{{ sheet }}">{{ sheet }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label class="form-label d-block">&nbsp;</label>
+                                <div class="btn-group w-100" role="group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> 搜索
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="clearSearch()">
+                                        <i class="fas fa-times"></i> 清除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="fileId" value="{{ file.id }}">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card" id="searchResults" style="display: none;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>
+                    <i class="fas fa-table"></i> 查询结果 
+                    <span class="badge bg-primary" id="resultCount">0</span>
+                </h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-success btn-sm" onclick="downloadResults()">
+                        <i class="fas fa-download"></i> 导出结果
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="loadingIndicator" style="display: none;" class="text-center py-4">
+                    <div class="loading mx-auto"></div>
+                    <p class="mt-2">正在搜索...</p>
+                </div>
+                
+                <div id="resultContainer">
+                    <div class="table-responsive search-result">
+                        <table class="table table-striped table-hover" id="resultTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <!-- 表头列将通过JavaScript动态添加 -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 数据行将通过JavaScript动态添加 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="fas fa-info-circle"></i> 文件信息</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>文件名:</strong><br>
+                        {{ file.original_filename }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>文件大小:</strong><br>
+                        {{ "%.2f"|format(file.file_size / 1024 / 1024) }} MB
+                    </div>
+                    <div class="col-md-3">
+                        <strong>总行数:</strong><br>
+                        {{ file_info.row_count }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>工作表:</strong><br>
+                        {{ file_info.sheets|length }} 个
+                    </div>
+                </div>
+                
+                {% if file_info.columns %}
+                <div class="mt-3">
+                    <strong>数据列:</strong><br>
+                    <div class="mt-1">
+                        {% for column in file_info.columns %}
+                            <span class="badge bg-light text-dark me-1">{{ column }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentResults = [];
+
+$(document).ready(function() {
+    // 页面加载时自动执行一次空搜索，显示所有数据
+    setTimeout(function() {
+        performSearch();
+    }, 500);
+});
+
+function clearSearch() {
+    $('#searchKeyword').val('');
+    $('#sheetName').val('');
+    performSearch();
+}
+
+function downloadResults() {
+    if (currentResults.length === 0) {
+        showAlert('没有可下载的数据', 'warning');
+        return;
+    }
+    
+    // 创建隐藏表单提交
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/download-results';
+    
+    const dataField = document.createElement('input');
+    dataField.type = 'hidden';
+    dataField.name = 'data';
+    dataField.value = JSON.stringify(currentResults);
+    
+    const filenameField = document.createElement('input');
+    filenameField.type = 'hidden';
+    filenameField.name = 'filename';
+    filenameField.value = '{{ file.original_filename.replace(".", "_") }}';
+    
+    form.appendChild(dataField);
+    form.appendChild(filenameField);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+function displaySearchResults(response) {
+    const resultsContainer = $('#searchResults');
+    const resultCount = $('#resultCount');
+    const resultTable = $('#resultTable');
+    const resultTableHead = resultTable.find('thead tr');
+    const resultTableBody = resultTable.find('tbody');
+    
+    // 保存当前结果
+    currentResults = response.data;
+    
+    // 更新结果计数
+    resultCount.text(response.total_rows);
+    
+    // 清空表头
+    resultTableHead.empty();
+    resultTableHead.append('<th>#</th>');
+    
+    // 添加表头
+    response.columns.forEach(function(column) {
+        resultTableHead.append('<th>' + escapeHtml(column) + '</th>');
+    });
+    
+    // 清空表体
+    resultTableBody.empty();
+    
+    if (response.data.length === 0) {
+        resultTableBody.append('<tr><td colspan="' + (response.columns.length + 1) + '" class="text-center">没有找到匹配的数据</td></tr>');
+    } else {
+        response.data.forEach(function(row, index) {
+            const tr = $('<tr></tr>');
+            
+            // 添加序号
+            tr.append('<td>' + (index + 1) + '</td>');
+            
+            // 添加数据列
+            response.columns.forEach(function(column) {
+                const value = row[column] || '';
+                const displayValue = value.toString().substring(0, 200);
+                const escapedValue = escapeHtml(displayValue);
+                
+                // 高亮关键词
+                const keyword = $('#searchKeyword').val().trim();
+                let finalValue = escapedValue;
+                if (keyword && keyword.length > 0) {
+                    const regex = new RegExp('(' + escapeRegExp(keyword) + ')', 'gi');
+                    finalValue = escapedValue.replace(regex, '<mark>$1</mark>');
+                }
+                
+                const td = $('<td></td>');
+                td.html(finalValue);
+                td.attr('title', value.length > 200 ? value : '');
+                tr.append(td);
+            });
+            
+            resultTableBody.append(tr);
+        });
+    }
+    
+    // 显示结果区域
+    resultsContainer.fadeIn();
+    
+    // 滚动到结果区域
+    $('html, body').animate({
+        scrollTop: resultsContainer.offset().top - 100
+    }, 500);
+}
+
+// 转义正则表达式特殊字符
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// HTML转义
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+</script>
+{% endblock %}

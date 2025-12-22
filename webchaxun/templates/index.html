@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - Web查询系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+            <div class="container">
+                <h1 class="display-4"><i class="fas fa-search"></i> Web查询系统</h1>
+                <p class="lead">基于Excel文件的数据查询与分析平台</p>
+                <hr class="my-4">
+                <p>支持关键词搜索、数据导出、权限控制等功能</p>
+                {% if not current_user.is_authenticated %}
+                    <a class="btn btn-light btn-lg" href="{{ url_for('auth.login') }}" role="button">
+                        <i class="fas fa-sign-in-alt"></i> 立即登录
+                    </a>
+                    <a class="btn btn-outline-light btn-lg ms-2" href="{{ url_for('auth.register') }}" role="button">
+                        <i class="fas fa-user-plus"></i> 注册账户
+                    </a>
+                {% else %}
+                    <a class="btn btn-light btn-lg" href="{{ url_for('main.dashboard') }}" role="button">
+                        <i class="fas fa-tachometer-alt"></i> 进入系统
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-file-excel fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Excel文件管理</h5>
+                <p class="card-text">支持上传、管理和权限控制Excel文件，确保数据安全</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">智能搜索</h5>
+                <p class="card-text">支持关键词搜索，快速定位所需数据，支持多工作表查询</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-download fa-3x text-info mb-3"></i>
+                <h5 class="card-title">数据导出</h5>
+                <p class="card-text">支持查询结果导出为Excel格式，方便数据分析和存档</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> 系统功能</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user"></i> 用户功能</h6>
+                        <ul>
+                            <li>用户注册和登录</li>
+                            <li>修改个人资料和密码</li>
+                            <li>查看可访问的Excel文件列表</li>
+                            <li>按关键词搜索Excel数据</li>
+                            <li>查看和下载查询结果</li>
+                            <li>导出搜索结果为Excel文件</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-cog"></i> 管理功能</h6>
+                        <ul>
+                            <li>管理员登录和权限控制</li>
+                            <li>上传和管理Excel文件</li>
+                            <li>设置文件访问权限</li>
+                            <li>用户管理（增删改查）</li>
+                            <li>批量导入用户</li>
+                            <li>系统参数配置</li>
+                            <li>开放/关闭注册开关</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-shield-alt"></i> 安全特性</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <i class="fas fa-lock fa-2x text-warning mb-2"></i>
+                        <h6>用户认证</h6>
+                        <small>安全的用户登录和权限验证</small>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <i class="fas fa-file-check fa-2x text-success mb-2"></i>
+                        <h6>文件类型检查</h6>
+                        <small>严格的文件类型和大小限制</small>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <i class="fas fa-shield-virus fa-2x text-danger mb-2"></i>
+                        <h6>安全处理</h6>
+                        <small>文件名安全处理和路径防护</small>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <i class="fas fa-key fa-2x text-info mb-2"></i>
+                        <h6>权限控制</h6>
+                        <small>细粒度的文件访问权限管理</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-laptop-code"></i> 技术特点</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>响应式设计</strong> - 适配桌面、平板和手机</li>
+                            <li><strong>模块化架构</strong> - 便于维护和扩展</li>
+                            <li><strong>现代技术栈</strong> - Flask + Bootstrap + jQuery</li>
+                            <li><strong>数据可视化</strong> - 清晰的数据展示</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>高性能查询</strong> - 优化的数据搜索算法</li>
+                            <li><strong>内存管理</strong> - 处理大型Excel文件</li>
+                            <li><strong>错误处理</strong> - 完善的异常处理机制</li>
+                            <li><strong>日志记录</strong> - 完整的操作日志</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

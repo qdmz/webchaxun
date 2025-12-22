@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}文件列表 - Web查询系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-file-excel"></i> Excel文件列表</h2>
+        <p class="text-muted">您可以访问以下Excel文件进行数据查询</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if files %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-file"></i> 文件名</th>
+                            <th><i class="fas fa-info-circle"></i> 描述</th>
+                            <th><i class="fas fa-user"></i> 上传者</th>
+                            <th><i class="fas fa-hdd"></i> 文件大小</th>
+                            <th><i class="fas fa-download"></i> 下载次数</th>
+                            <th><i class="fas fa-calendar"></i> 创建时间</th>
+                            <th><i class="fas fa-cogs"></i> 操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in files %}
+                        <tr>
+                            <td>
+                                <i class="fas fa-file-excel text-success file-icon-excel"></i>
+                                <strong>{{ file.original_filename }}</strong>
+                            </td>
+                            <td>{{ file.description or '<span class="text-muted">无描述</span>'|safe }}</td>
+                            <td>{{ file.uploader.username if file.uploader else '-' }}</td>
+                            <td>{{ "%.2f"|format(file.file_size / 1024 / 1024) }} MB</td>
+                            <td>
+                                <span class="badge bg-info">{{ file.download_count }}</span>
+                            </td>
+                            <td>{{ file.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('main.query_page', file_id=file.id) }}" 
+                                       class="btn btn-sm btn-primary" 
+                                       title="查询数据" 
+                                       data-bs-toggle="tooltip">
+                                        <i class="fas fa-search"></i>
+                                    </a>
+                                    <a href="{{ url_for('main.download_file', file_id=file.id) }}" 
+                                       class="btn btn-sm btn-success" 
+                                       title="下载文件" 
+                                       data-bs-toggle="tooltip">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">暂无可访问的Excel文件</h4>
+                <p class="text-muted">请联系管理员为您分配文件访问权限</p>
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin.upload_file') }}" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> 上传第一个文件
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="fas fa-lightbulb"></i> 使用说明</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>数据查询</h6>
+                        <ul>
+                            <li>点击"查询"按钮进入数据查询页面</li>
+                            <li>输入关键词搜索相关数据</li>
+                            <li>支持跨多列的模糊匹配搜索</li>
+                            <li>可以指定特定的工作表进行查询</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>数据导出</h6>
+                        <ul>
+                            <li>查询结果可以导出为Excel文件</li>
+                            <li>点击"下载"可以导出当前查询结果</li>
+                            <li>导出文件包含完整的查询结果数据</li>
+                            <li>支持大数据量的分页查询</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    initializeTooltips();
+});
+</script>
+{% endblock %}
